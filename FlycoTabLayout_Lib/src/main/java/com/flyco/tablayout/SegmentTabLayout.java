@@ -11,8 +11,6 @@ import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.util.AttributeSet;
 import android.util.SparseArray;
 import android.util.TypedValue;
@@ -29,6 +27,9 @@ import com.flyco.tablayout.utils.UnreadMsgUtils;
 import com.flyco.tablayout.widget.MsgView;
 
 import java.util.ArrayList;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
 public class SegmentTabLayout extends FrameLayout implements ValueAnimator.AnimatorUpdateListener {
     private Context mContext;
@@ -70,6 +71,7 @@ public class SegmentTabLayout extends FrameLayout implements ValueAnimator.Anima
     private static final int TEXT_BOLD_WHEN_SELECT = 1;
     private static final int TEXT_BOLD_BOTH = 2;
     private float mTextsize;
+    private float mTextSelectedSize;
     private int mTextSelectColor;
     private int mTextUnselectColor;
     private int mTextBold;
@@ -144,6 +146,7 @@ public class SegmentTabLayout extends FrameLayout implements ValueAnimator.Anima
         mDividerPadding = ta.getDimension(R.styleable.SegmentTabLayout_tl_divider_padding, 0);
 
         mTextsize = ta.getDimension(R.styleable.SegmentTabLayout_tl_textsize, sp2px(13f));
+        mTextSelectedSize = ta.getDimension(R.styleable.SegmentTabLayout_tl_textSelectedSize, sp2px(13f));
         mTextSelectColor = ta.getColor(R.styleable.SegmentTabLayout_tl_textSelectColor, Color.parseColor("#ffffff"));
         mTextUnselectColor = ta.getColor(R.styleable.SegmentTabLayout_tl_textUnselectColor, mIndicatorColor);
         mTextBold = ta.getInt(R.styleable.SegmentTabLayout_tl_textBold, TEXT_BOLD_NONE);
@@ -228,7 +231,7 @@ public class SegmentTabLayout extends FrameLayout implements ValueAnimator.Anima
             tabView.setPadding((int) mTabPadding, 0, (int) mTabPadding, 0);
             TextView tv_tab_title = (TextView) tabView.findViewById(R.id.tv_tab_title);
             tv_tab_title.setTextColor(i == mCurrentTab ? mTextSelectColor : mTextUnselectColor);
-            tv_tab_title.setTextSize(TypedValue.COMPLEX_UNIT_PX, mTextsize);
+            tv_tab_title.setTextSize(TypedValue.COMPLEX_UNIT_PX, i == mCurrentTab ? mTextSelectedSize : mTextsize);
 //            tv_tab_title.setPadding((int) mTabPadding, 0, (int) mTabPadding, 0);
             if (mTextAllCaps) {
                 tv_tab_title.setText(tv_tab_title.getText().toString().toUpperCase());
@@ -248,6 +251,7 @@ public class SegmentTabLayout extends FrameLayout implements ValueAnimator.Anima
             final boolean isSelect = i == position;
             TextView tab_title = (TextView) tabView.findViewById(R.id.tv_tab_title);
             tab_title.setTextColor(isSelect ? mTextSelectColor : mTextUnselectColor);
+            tab_title.setTextSize(TypedValue.COMPLEX_UNIT_PX, isSelect ? mTextSelectedSize : mTextsize);
             if (mTextBold == TEXT_BOLD_WHEN_SELECT) {
                 tab_title.getPaint().setFakeBoldText(isSelect);
             }
@@ -486,6 +490,11 @@ public class SegmentTabLayout extends FrameLayout implements ValueAnimator.Anima
         updateTabStyles();
     }
 
+    public void setTextSelectedSize(float textsize) {
+        this.mTextSelectedSize = sp2px(textsize);
+        updateTabStyles();
+    }
+
     public void setTextSelectColor(int textSelectColor) {
         this.mTextSelectColor = textSelectColor;
         updateTabStyles();
@@ -581,6 +590,8 @@ public class SegmentTabLayout extends FrameLayout implements ValueAnimator.Anima
     public float getTextsize() {
         return mTextsize;
     }
+
+    public float getTextSelectedSize() { return mTextSelectedSize; }
 
     public int getTextSelectColor() {
         return mTextSelectColor;

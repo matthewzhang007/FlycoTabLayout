@@ -10,12 +10,6 @@ import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.SparseArray;
 import android.util.TypedValue;
@@ -32,6 +26,13 @@ import com.flyco.tablayout.widget.MsgView;
 
 import java.util.ArrayList;
 import java.util.Collections;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 /** 滑动TabLayout,对于ViewPager的依赖性强 */
 public class SlidingTabLayout extends HorizontalScrollView implements ViewPager.OnPageChangeListener {
@@ -88,6 +89,7 @@ public class SlidingTabLayout extends HorizontalScrollView implements ViewPager.
     private static final int TEXT_BOLD_WHEN_SELECT = 1;
     private static final int TEXT_BOLD_BOTH = 2;
     private float mTextsize;
+    private float mTextSelectedSize;
     private int mTextSelectColor;
     private int mTextUnselectColor;
     private int mTextBold;
@@ -156,6 +158,7 @@ public class SlidingTabLayout extends HorizontalScrollView implements ViewPager.
         mDividerPadding = ta.getDimension(R.styleable.SlidingTabLayout_tl_divider_padding, dp2px(12));
 
         mTextsize = ta.getDimension(R.styleable.SlidingTabLayout_tl_textsize, sp2px(14));
+        mTextSelectedSize = ta.getDimension(R.styleable.SlidingTabLayout_tl_textSelectedSize, sp2px(14));
         mTextSelectColor = ta.getColor(R.styleable.SlidingTabLayout_tl_textSelectColor, Color.parseColor("#ffffff"));
         mTextUnselectColor = ta.getColor(R.styleable.SlidingTabLayout_tl_textUnselectColor, Color.parseColor("#AAffffff"));
         mTextBold = ta.getInt(R.styleable.SlidingTabLayout_tl_textBold, TEXT_BOLD_NONE);
@@ -294,19 +297,20 @@ public class SlidingTabLayout extends HorizontalScrollView implements ViewPager.
     private void updateTabStyles() {
         for (int i = 0; i < mTabCount; i++) {
             View v = mTabsContainer.getChildAt(i);
+            boolean isSelected = i == mCurrentTab;
 //            v.setPadding((int) mTabPadding, v.getPaddingTop(), (int) mTabPadding, v.getPaddingBottom());
             TextView tv_tab_title = (TextView) v.findViewById(R.id.tv_tab_title);
             if (tv_tab_title != null) {
                 tv_tab_title.setTextColor(i == mCurrentTab ? mTextSelectColor : mTextUnselectColor);
-                tv_tab_title.setTextSize(TypedValue.COMPLEX_UNIT_PX, mTextsize);
+                tv_tab_title.setTextSize(TypedValue.COMPLEX_UNIT_PX, isSelected ? mTextSelectedSize : mTextsize);
                 tv_tab_title.setPadding((int) mTabPadding, 0, (int) mTabPadding, 0);
                 if (mTextAllCaps) {
                     tv_tab_title.setText(tv_tab_title.getText().toString().toUpperCase());
                 }
 
-                if (mTextBold == TEXT_BOLD_BOTH) {
+                if (mTextBold == TEXT_BOLD_BOTH || (mTextBold == TEXT_BOLD_WHEN_SELECT && isSelected)) {
                     tv_tab_title.getPaint().setFakeBoldText(true);
-                } else if (mTextBold == TEXT_BOLD_NONE) {
+                } else {
                     tv_tab_title.getPaint().setFakeBoldText(false);
                 }
             }
@@ -369,6 +373,7 @@ public class SlidingTabLayout extends HorizontalScrollView implements ViewPager.
 
             if (tab_title != null) {
                 tab_title.setTextColor(isSelect ? mTextSelectColor : mTextUnselectColor);
+                tab_title.setTextSize(TypedValue.COMPLEX_UNIT_PX, isSelect ? mTextSelectedSize : mTextsize);
                 if (mTextBold == TEXT_BOLD_WHEN_SELECT) {
                     tab_title.getPaint().setFakeBoldText(isSelect);
                 }
@@ -386,7 +391,7 @@ public class SlidingTabLayout extends HorizontalScrollView implements ViewPager.
         //for mIndicatorWidthEqualTitle
         if (mIndicatorStyle == STYLE_NORMAL && mIndicatorWidthEqualTitle) {
             TextView tab_title = (TextView) currentTabView.findViewById(R.id.tv_tab_title);
-            mTextPaint.setTextSize(mTextsize);
+            mTextPaint.setTextSize(mTextSelectedSize);
             float textWidth = mTextPaint.measureText(tab_title.getText().toString());
             margin = (right - left - textWidth) / 2;
         }
@@ -402,7 +407,7 @@ public class SlidingTabLayout extends HorizontalScrollView implements ViewPager.
             //for mIndicatorWidthEqualTitle
             if (mIndicatorStyle == STYLE_NORMAL && mIndicatorWidthEqualTitle) {
                 TextView next_tab_title = (TextView) nextTabView.findViewById(R.id.tv_tab_title);
-                mTextPaint.setTextSize(mTextsize);
+                mTextPaint.setTextSize(mTextSelectedSize);
                 float nextTextWidth = mTextPaint.measureText(next_tab_title.getText().toString());
                 float nextMargin = (nextTabRight - nextTabLeft - nextTextWidth) / 2;
                 margin = margin + mCurrentPositionOffset * (nextMargin - margin);
@@ -629,6 +634,11 @@ public class SlidingTabLayout extends HorizontalScrollView implements ViewPager.
         updateTabStyles();
     }
 
+    public void setTextSelectedSize(float textsize) {
+        this.mTextSelectedSize = sp2px(textsize);
+        updateTabStyles();
+    }
+
     public void setTextSelectColor(int textSelectColor) {
         this.mTextSelectColor = textSelectColor;
         updateTabStyles();
@@ -733,6 +743,8 @@ public class SlidingTabLayout extends HorizontalScrollView implements ViewPager.
     public float getTextsize() {
         return mTextsize;
     }
+
+    public float getTextSelectedSize() { return mTextSelectedSize; }
 
     public int getTextSelectColor() {
         return mTextSelectColor;
